@@ -22,6 +22,7 @@ public class JwtService {
     private final String SECRET_KEY = "M63WBByKNQsZBhJ3uh1tCckX5UG3unLqRYjyDI6up/Y=";
 
     public String extractEmail(String token){
+
         return extractClaim(token, Claims::getSubject);
     }
     public String generateToken(UserDetails userDetails){
@@ -32,13 +33,13 @@ public class JwtService {
                 .setClaims(extraClaim)
                 .setSubject(userDetails.getUsername())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 24))
+                .setExpiration(new Date(System.currentTimeMillis() + 1000L * 60 * 60 * 24 * 30))
                 .signWith(getSigninKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
     public boolean isTokenValid(String token, UserDetails userDetails){
-        final String userName = userDetails.getUsername();
-        return (userName.equals(extractEmail(token)) && !isTokenExpired(token));
+        final String userName = extractEmail(token);
+        return (userName.equals(userDetails.getUsername()) && !isTokenExpired(token));
     }
     public boolean isTokenExpired(String token){
         if (extractExpiration(token).before(new Date())) {
