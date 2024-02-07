@@ -36,14 +36,14 @@ public class MembreController {
         return membreService.findAll();
     }
 
-    @PostMapping("save")
-    private ResponseEntity<String> ajouter(@RequestBody MembreDto membredto){
+    @PostMapping("save/{email}")
+    private ResponseEntity<String> ajouter(@PathVariable String email, @RequestBody MembreDto membredto){
 
         if (membreRepository.existsByEmail(membredto.getEmail())) {
             return new ResponseEntity<>("nok", HttpStatus.FOUND);
         }
         else{
-            membreService.addMembre(membredto);
+            membreService.addMembre(email, membredto);
             return new ResponseEntity<>("ok", HttpStatus.CREATED);
         }
         }

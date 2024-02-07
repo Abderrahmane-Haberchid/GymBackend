@@ -3,9 +3,13 @@ import com.gym_backend.dto.MembreDto;
 import com.gym_backend.dto.PaimentDto;
 import com.gym_backend.models.Membre;
 import com.gym_backend.models.Paiements;
+import com.gym_backend.models.User;
 import com.gym_backend.repository.MembreRepository;
 import com.gym_backend.repository.PaimentsRepository;
+import com.gym_backend.repository.UserRepository;
 import com.gym_backend.services.MembreService;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -18,10 +22,13 @@ import java.util.*;
 public class MembreServiceImpl implements MembreService {
 
     private final MembreRepository membreRepository;
+
+    private final UserRepository userRepository;
     private final PaimentsRepository paimentsRepository;
     @Autowired
-    public MembreServiceImpl(MembreRepository membreRepository, PaimentsRepository paimentsRepository) {
+    public MembreServiceImpl(MembreRepository membreRepository, UserRepository userRepository, PaimentsRepository paimentsRepository) {
         this.membreRepository = membreRepository;
+        this.userRepository = userRepository;
         this.paimentsRepository = paimentsRepository;
     }
 
@@ -32,7 +39,11 @@ public class MembreServiceImpl implements MembreService {
     }
 
     @Override
-    public MembreDto addMembre(MembreDto membreDto) {
+    public MembreDto addMembre(String email, MembreDto membreDto) {
+
+        User user = userRepository.findByEmail(email).get();
+        //Set<Membre> membreList = new HashSet<>();
+
             var membre = Membre.builder()
 
                     .nom(membreDto.getNom())
@@ -46,7 +57,10 @@ public class MembreServiceImpl implements MembreService {
                     .state("Actif")
                     .statut("Bundled")
                     .build();
-            membreRepository.save(membre);
+
+            user.getMembreSet().add(membre);
+
+            userRepository.save(user);
             return membreDto;
     }
 
@@ -93,7 +107,7 @@ public class MembreServiceImpl implements MembreService {
 
     @Override
     public boolean addPayment(PaimentDto paimentDto, Long id) {
-        Paiements paiements = new Paiements();
+
         Membre membre = membreRepository.findById(id).get();
 
         int daysToAdd = 0;
@@ -119,17 +133,19 @@ public class MembreServiceImpl implements MembreService {
         c.add(Calendar.DATE, daysToAdd);
         Date date = c.getTime();
 
-        paiements.setType_paiement(paimentDto.getType_paiement());
-        paiements.setDate_paiement(new Date());
-        paiements.setDate_expiration(date);
-        paiements.setPrix(paimentDto.getPrix());
-        paiements.setType_abonnement(paimentDto.getType_abonnement());
+
+        var paiement = Paiements.builder()
+                .date_paiement(new Date())
+                .type_paiement(paimentDto.getType_paiement())
+                .date_expiration(date)
+                .prix(paimentDto.getPrix())
+                .type_abonnement(paimentDto.getType_abonnement())
+                .build();
 
         membre.setDate_update(new Date());
         membre.setStatut("Paid");
-        membre.getPaiementsSet().add(paiements);
+        membre.getPaiementsSet().add(paiement);
         membreRepository.save(membre);
-        paimentsRepository.save(paiements);
 
         return true;
     }

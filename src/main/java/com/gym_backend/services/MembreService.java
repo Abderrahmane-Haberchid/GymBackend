@@ -9,7 +9,7 @@ import java.util.Optional;
 
 public interface MembreService {
      Optional<List<Membre>> findAll();
-    MembreDto addMembre(MembreDto membredto);
+    MembreDto addMembre(String email, MembreDto membredto);
     Boolean updateMembre(MembreDto membredto, Long id);
     Optional<List<Membre>> findByName(String name);
     Optional<List<Membre>> findByStatut(String statut);

@@ -27,11 +27,8 @@ public class Membre {
     private Date date_inscription;
     private Date date_update;
     private String state;
-    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    @JoinTable(
-            name = "membre_paiement",
-            joinColumns = { @JoinColumn(name = "id_membre") },
-            inverseJoinColumns = { @JoinColumn(name = "id_paiement") }
-    )
+
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     Set<Paiements> paiementsSet = new HashSet<>();
+
 }

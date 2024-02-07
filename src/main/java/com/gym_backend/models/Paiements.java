@@ -13,6 +13,7 @@ import java.util.Set;
 @Entity
 @Getter
 @Setter
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class Paiements {
@@ -24,9 +25,6 @@ public class Paiements {
     private Double prix;
     private String type_abonnement;
     private String type_paiement;
-    @ManyToMany(mappedBy = "paiementsSet")
-
-    Set<Membre> membreSet = new HashSet<>();
     @JsonIgnore
     public void setMembreSet(Set<Membre> membres) {
             membres.forEach(membre -> membre.setStatut("Unpaid"));
