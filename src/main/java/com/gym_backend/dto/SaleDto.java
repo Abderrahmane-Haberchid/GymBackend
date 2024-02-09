@@ -9,12 +9,11 @@ import java.util.Date;
 @Getter
 @Setter
 @ToString
-public class SupplementsDto {
+public class SaleDto {
     private String nom;
     private String marque;
     private String type;
     private int quantity;
-    private Date dateAjout;
-    private Double prixAchat;
+    private Date dateVente;
     private Double prixVente;
 }

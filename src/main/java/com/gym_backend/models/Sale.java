@@ -1,6 +1,9 @@
 package com.gym_backend.models;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 import lombok.*;
 
 import java.util.Date;
@@ -9,9 +12,9 @@ import java.util.Date;
 @Builder
 @Getter
 @Setter
-@NoArgsConstructor
 @AllArgsConstructor
-public class Supplements {
+@NoArgsConstructor
+public class Sale {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -19,8 +22,7 @@ public class Supplements {
     private String marque;
     private String type;
     private int quantity;
-    private Date dateAjout;
-    private Double prixAchat;
+    private Date dateVente;
     private Double prixVente;
 
 }

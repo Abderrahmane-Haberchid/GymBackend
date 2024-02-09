@@ -12,12 +12,10 @@ import java.util.List;
 
 @RestController
 @RequestMapping("api/v1/supplements")
-@CrossOrigin(origins = "http://localhost:3000")
 public class SupplementController {
 
     private final SupplementService supplementService;
 
-    @Autowired
     public SupplementController(SupplementService supplementService) {
         this.supplementService = supplementService;
     }
@@ -27,10 +25,11 @@ public class SupplementController {
          return supplementService.findByType(type);
     }
 
-    @PostMapping("/addSale")
-    public ResponseEntity<String> ajouterVente(@RequestBody SupplementsDto supplementsDto){
-                if(supplementService.addSale(supplementsDto))
-                    return new ResponseEntity<>(supplementsDto.toString(), HttpStatus.OK);
-                else return new ResponseEntity<>("nok", HttpStatus.BAD_REQUEST);
+    @PostMapping("/add/{email}")
+    public ResponseEntity<SupplementsDto> addProduct(@PathVariable String email, @RequestBody SupplementsDto supplementsDto){
+
+        return ResponseEntity.ok(supplementService.addProduct(email, supplementsDto));
+
     }
+
 }

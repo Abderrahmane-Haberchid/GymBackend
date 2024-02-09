@@ -2,22 +2,27 @@ package com.gym_backend.services.Impl;
 
 import com.gym_backend.dto.SupplementsDto;
 import com.gym_backend.models.Supplements;
+import com.gym_backend.models.User;
 import com.gym_backend.repository.SupplementsRepository;
+import com.gym_backend.repository.UserRepository;
 import com.gym_backend.services.SupplementService;
+import lombok.Builder;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
 @Service
 public class SupplementServiceImpl implements SupplementService {
-
-    @Autowired
     private final SupplementsRepository supplementsRepository;
+    private final UserRepository userRepository;
 
-    public SupplementServiceImpl(SupplementsRepository supplementsRepository) {
+    public SupplementServiceImpl(SupplementsRepository supplementsRepository, UserRepository userRepository) {
         this.supplementsRepository = supplementsRepository;
+        this.userRepository = userRepository;
     }
 
     @Override
@@ -26,26 +31,25 @@ public class SupplementServiceImpl implements SupplementService {
     }
 
     @Override
-    public boolean addSale(SupplementsDto supplementsDto) {
-       Supplements supplements = supplementsRepository.findByTypeAndMarque(supplementsDto.getType(), supplementsDto.getMarque()).get(0);
-       int qte = supplements.getQuantity() - supplementsDto.getQuantity();
-        if (qte < 0) {
-            return false;
-        }
-        else{
-            supplements.setQuantity(qte);
-            supplementsRepository.save(supplements);
-            return true;
-        }
-    }
+    public SupplementsDto addProduct(String email, SupplementsDto supplementsDto) {
 
-    @Override
-    public boolean addProduct(SupplementsDto supplementsDto) {
-        Supplements supplements = supplementsRepository.findByTypeAndMarque(supplementsDto.getType(), supplementsDto.getMarque()).get(0);
-        int qte = supplements.getQuantity() + supplementsDto.getQuantity();
-        supplements.setQuantity(qte);
-        supplementsRepository.save(supplements);
-        return true;
+        User user = userRepository.findByEmail(email).get();
+
+        var supp = Supplements.builder()
+                .nom(supplementsDto.getNom())
+                .marque(supplementsDto.getMarque())
+                .type(supplementsDto.getType())
+                .dateAjout(new Date())
+                .quantity(supplementsDto.getQuantity())
+                .prixVente(supplementsDto.getPrixVente())
+                .prixAchat(supplementsDto.getPrixAchat())
+                .build();
+
+        user.getSuppSet().add(supp);
+
+        userRepository.save(user);
+
+        return supplementsDto;
     }
 
 }

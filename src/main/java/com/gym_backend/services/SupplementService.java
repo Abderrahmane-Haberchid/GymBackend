@@ -7,6 +7,5 @@ import java.util.List;
 
 public interface SupplementService {
      List<Supplements> findByType(String type);
-     boolean addSale(SupplementsDto supplementsDto);
-     boolean addProduct(SupplementsDto supplementsDto);
+     SupplementsDto addProduct(String email, SupplementsDto supplementsDto);
 }
