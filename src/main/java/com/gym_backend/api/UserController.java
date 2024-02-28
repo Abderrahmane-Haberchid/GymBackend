@@ -1,5 +1,6 @@
 package com.gym_backend.api;
 
+import com.gym_backend.dto.UserDto;
 import com.gym_backend.models.User;
 import com.gym_backend.services.UserService;
 import lombok.AllArgsConstructor;
@@ -19,7 +20,7 @@ public class UserController {
     private final UserService userService;
 
     @GetMapping("/{email}")
-    public ResponseEntity<Optional<User>> findById(@PathVariable String email){
+    public ResponseEntity<UserDto> findById(@PathVariable String email){
             return ResponseEntity.ok(userService.findUserByEmail(email));
     }
 }

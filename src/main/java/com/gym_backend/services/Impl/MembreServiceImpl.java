@@ -1,87 +1,80 @@
 package com.gym_backend.services.Impl;
+import com.amazonaws.services.s3.AmazonS3;
 import com.gym_backend.dto.MembreDto;
 import com.gym_backend.dto.PaimentDto;
 import com.gym_backend.models.Membre;
 import com.gym_backend.models.Paiements;
 import com.gym_backend.models.User;
 import com.gym_backend.repository.MembreRepository;
-import com.gym_backend.repository.PaimentsRepository;
 import com.gym_backend.repository.UserRepository;
 import com.gym_backend.services.MembreService;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Scheduled;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
+import java.io.File;
+import java.io.IOException;
 import java.util.*;
 
 @Service
+@RequiredArgsConstructor
 public class MembreServiceImpl implements MembreService {
 
     private final MembreRepository membreRepository;
 
     private final UserRepository userRepository;
-    private final PaimentsRepository paimentsRepository;
-    @Autowired
-    public MembreServiceImpl(MembreRepository membreRepository, UserRepository userRepository, PaimentsRepository paimentsRepository) {
-        this.membreRepository = membreRepository;
-        this.userRepository = userRepository;
-        this.paimentsRepository = paimentsRepository;
-    }
-
-
     @Override
     public Optional<List<Membre>> findAll() {
         return Optional.of(membreRepository.findAll());
     }
 
     @Override
-    public MembreDto addMembre(String email, MembreDto membreDto) {
+    public boolean addMembre(String email, MembreDto membreDto) {
 
         User user = userRepository.findByEmail(email).get();
-        //Set<Membre> membreList = new HashSet<>();
 
-            var membre = Membre.builder()
+        List<Membre> checkIfExistMembre = user.getMembreSet().stream()
+                                            .filter(c -> Objects.equals(c.getEmail(), membreDto.getEmail())).toList();
 
+            var membreToAdd = Membre.builder()
+                    .image("")
                     .nom(membreDto.getNom())
                     .prenom(membreDto.getPrenom())
                     .telephone(membreDto.getTelephone())
                     .email(membreDto.getEmail())
                     .adresse(membreDto.getAdresse())
                     .age(membreDto.getAge())
-                    .date_inscription(new Date())
-                    .date_update(new Date())
+                    .dateInscription(new Date())
+                    .dateUpdate(new Date())
                     .state("Actif")
                     .statut("Bundled")
                     .build();
-
-            user.getMembreSet().add(membre);
-
-            userRepository.save(user);
-            return membreDto;
+            if (!checkIfExistMembre.isEmpty()) {
+                return  false;
+            }
+            else{
+                user.getMembreSet().add(membreToAdd);
+                userRepository.save(user);
+                return true;
+            }
     }
 
     @Override
-    public Boolean updateMembre(MembreDto membredto, Long id) {
-        //Membre membre = new Membre();
-          Membre membre = membreRepository.findById(id).get();
+    public MembreDto updateMembre(MembreDto membredto, Long id) {
 
-        if (Objects.equals(membre.getId_membre(), id)) {
+          Membre membre = membreRepository.findById(id).get();
             membre.setNom(membredto.getNom());
             membre.setPrenom(membredto.getPrenom());
             membre.setAge(membredto.getAge());
             membre.setEmail(membredto.getEmail());
             membre.setAdresse(membredto.getAdresse());
             membre.setTelephone(membredto.getTelephone());
-            membre.setDate_update(new Date());
+            membre.setDateUpdate(new Date());
 
             membreRepository.save(membre);
-            return true;
-        }
-        else return false;
+            return membredto;
+
     }
 
     @Override
@@ -106,32 +99,41 @@ public class MembreServiceImpl implements MembreService {
     }
 
     @Override
-    public boolean addPayment(PaimentDto paimentDto, Long id) {
+    public PaimentDto addPayment(PaimentDto paimentDto, Long id, String userEmail) {
 
+        Date date = null;
         Membre membre = membreRepository.findById(id).get();
+        User user = userRepository.findByEmail(userEmail).get();
 
-        int daysToAdd = 0;
+        int monthsToAdd = 0;
         String paymentType = paimentDto.getType_paiement();
 
         if (paymentType.equals("Mensuel")) {
-            daysToAdd = 30;
-        }
-        if (paymentType.equals("Par jour")) {
-            daysToAdd = 1;
+            monthsToAdd = 1;
         }
         if (paymentType.equals("Par 3mois")) {
-            daysToAdd = 90;
+            monthsToAdd = 3;
         }
         if (paymentType.equals("Par 6mois")) {
-            daysToAdd = 180;
+            monthsToAdd = 6;
         }
         if (paymentType.equals("Annuel")) {
-            daysToAdd = 360;
+            monthsToAdd = 12;
         }
 
-        Calendar c= Calendar.getInstance();
-        c.add(Calendar.DATE, daysToAdd);
-        Date date = c.getTime();
+        if (paimentDto.isDontkeepExpDate()){
+            Calendar c= Calendar.getInstance();
+            c.add(Calendar.MONTH, monthsToAdd);
+             date = c.getTime();
+        }
+        if (!paimentDto.isDontkeepExpDate()){
+            Calendar c= Calendar.getInstance();
+            List<Paiements> pt = membre.getPaiementsSet().stream().toList();
+            Date dt = pt.get(pt.size()-1).getDate_expiration();
+            c.setTime(dt);
+            c.add(Calendar.MONTH, monthsToAdd);
+            date = c.getTime();
+        }
 
 
         var paiement = Paiements.builder()
@@ -142,12 +144,15 @@ public class MembreServiceImpl implements MembreService {
                 .type_abonnement(paimentDto.getType_abonnement())
                 .build();
 
-        membre.setDate_update(new Date());
+        membre.setDateUpdate(new Date());
         membre.setStatut("Paid");
         membre.getPaiementsSet().add(paiement);
         membreRepository.save(membre);
 
-        return true;
+        user.getPaiementsSet().add(paiement);
+        userRepository.save(user);
+
+        return paimentDto;
     }
 
 }

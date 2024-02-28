@@ -1,7 +1,9 @@
 package com.gym_backend.dto;
 
 import lombok.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
 import java.util.Date;
 
 @AllArgsConstructor
@@ -12,10 +14,10 @@ import java.util.Date;
 public class MembreDto {
 
     private Long id;
+    private MultipartFile image;
     private String nom;
     private String prenom;
     private String email;
-
     private int age;
     private int telephone;
     private String adresse;

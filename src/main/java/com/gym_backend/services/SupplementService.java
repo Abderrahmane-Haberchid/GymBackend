@@ -7,5 +7,6 @@ import java.util.List;
 
 public interface SupplementService {
      List<Supplements> findByType(String type);
+
      SupplementsDto addProduct(String email, SupplementsDto supplementsDto);
 }

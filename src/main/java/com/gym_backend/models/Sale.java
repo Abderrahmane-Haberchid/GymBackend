@@ -1,5 +1,6 @@
 package com.gym_backend.models;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -22,6 +23,7 @@ public class Sale {
     private String marque;
     private String type;
     private int quantity;
+    @JsonFormat(pattern="dd-MM-yyyy")
     private Date dateVente;
     private Double prixVente;
 
